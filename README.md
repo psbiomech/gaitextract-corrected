@@ -1,2 +1,2 @@
 # gaitextract-timdorn-source
-Original source files for Tim's GaitExtractToolbox
+Based on GaitExtract171 by Tim Dorn
