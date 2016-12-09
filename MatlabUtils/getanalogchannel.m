@@ -27,6 +27,9 @@ function ACHANNEL = getanalogchannel(itf, signalname, index1, index2)
 %   DISCLAIMER: The use of these functions is at your own risk.  
 %   The authors do not assume any responsibility related to the use 
 %   of this code, and do not guarantee its correctness. 
+%
+%   Modified by Prasanna Sritharan, October 2016
+%   (changed findstr to strmatch as findstr is less precise)
      
 
 if nargin == 2, 
@@ -68,8 +71,8 @@ for i = 1 : nItems,
         newstring = channel_name;
     end
     
-%     if strmatch(upper(newstring), signalname, 'exact') == 1,
-    if findstr(upper(newstring), upper(removeSpaces(signalname)))
+    if strmatch(upper(newstring),  upper(removeSpaces(signalname)), 'exact') == 1,
+    %if findstr(upper(newstring), upper(removeSpaces(signalname)))
         signal_index = i - 1;
     end  
 end
