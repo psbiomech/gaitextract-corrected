@@ -421,8 +421,20 @@ else
             c3dFile, glab.offsetMarker, C3Dkey.offset(1), C3Dkey.offset(2), C3Dkey.offset(3));
         
         tmp2 = coordChange(tmp', C3Dkey.transform.VICMODEL)';
-        C3Dkey.averageSpeed = double(abs((tmp2(end,1) - tmp2(1,1)) / 1000 / ...
-            (C3Dkey.timeVec.Vsec(end) - (C3Dkey.timeVec.Vsec(1)))));
+        
+        % Added by: Prasanna Sritharan, January 2016
+        % Before calculating speed, check for NaNs in selected marker data
+        % and adjust bounds as required. NaNs in data can occur in data if
+        % the marker is not visible while the trial is being recorded.
+        % Valid numerical data is only recorded if the marker is visible.
+        tstart = 1;
+        tend = size(tmp2,1);
+        while isnan(tmp2(tstart,1)), tstart = tstart + 1; end;
+        while isnan(tmp2(tend,1)), tend = tend - 1; end;
+        
+        
+        C3Dkey.averageSpeed = double(abs((tmp2(tend,1) - tmp2(tstart,1)) / 1000 / ...
+            (C3Dkey.timeVec.Vsec(tend) - (C3Dkey.timeVec.Vsec(tstart)))));
         fprintf('Average Trial Speed: %.3f m/s\n', C3Dkey.averageSpeed)
         tspeed = C3Dkey.averageSpeed;
         save trialSpeed.data tspeed -ASCII      % Write average speed to file
@@ -711,13 +723,27 @@ end
 % Use C3Dkey.sequence.plates to determine the event boundaries
 % for each force plate used in the trial.
 % Adds the eventIndex field to the C3Dkey.sequence structure
+%
+% Modified by Prasanna Sritharan, April 2018
+% Ignores active force plates that have no bounding events
 % ========================================================================
 function C3Dkey = detectEventBoundaries(C3Dkey)
 try
-for i = 1:C3Dkey.numPlatesUsed
-    [ii,jj] = find(C3Dkey.sequence.plates == C3Dkey.FP_order(i));
-    C3Dkey.sequence.eventIndex(i,:) = [ii(1) ii(end)+1];
-end
+    fpremove = [];
+    for i = 1:C3Dkey.numPlatesUsed
+        [ii,jj] = find(C3Dkey.sequence.plates == C3Dkey.FP_order(i));
+        if ~isempty(ii) % FP is active, and there are bounding events
+            C3Dkey.sequence.eventIndex(i,:) = [ii(1) ii(end)+1];    
+        else    % FP is active but there are no bounding events
+            fpremove(end+1) = i;
+            C3Dkey.sequence.eventIndex(i,:) = [-1 -1];        
+            fprintf('Warning: FP%d is active but not bounded by events, and will be ignored.\n',C3Dkey.FP_order(i));
+        end
+    end
+    C3Dkey.FP_order(fpremove) = [];
+    C3Dkey.FP_order_inv = invFP(C3Dkey.FP_order);
+    C3Dkey.sequence.eventIndex(fpremove,:) = [];
+    C3Dkey.numPlatesUsed = C3Dkey.numPlatesUsed - length(fpremove);
 catch
     fprintf('Warning: Could not detect event boundaries.\n');
 end

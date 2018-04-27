@@ -685,7 +685,7 @@ colnamesKinetics = {'time', 'ground_force_vx', 'ground_force_vy', 'ground_force_
 generateMotFile(bigM, colnamesKinetics, sprintf('%s.mot', file));
 
 % Generate kinetics XML file to be associated with this mot file
-generateKineticsXML(file);
+%generateKineticsXML(file);    % removed by Prasanna Sritharan, January 2016
 
 
 
