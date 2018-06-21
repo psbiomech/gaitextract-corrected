@@ -414,7 +414,17 @@ elseif C3Dkey.allowed.markers == 0
     C3Dkey.offset = [0 0 0];
 else
     try
-        tmp = -get3dtarget(itf, glab.offsetMarker, 0, C3Dkey.event.Vframes(1), C3Dkey.event.Vframes(end));
+        % Added by: Prasanna Sritharan, June 2017
+        % Constrict time window for speed calculation to avoid inclusion of
+        % data distortion due to C3Dserver trimming issues if possible,
+        % otherwise use Tim's original version. Calculate from 5th frame to
+        % 5th-last frame if data stream is long enough.
+        if (C3Dkey.event.Vframes(end)-C3Dkey.event.Vframes(1))>=10
+            tmp = -get3dtarget(itf, glab.offsetMarker, 0, C3Dkey.event.Vframes(5), C3Dkey.event.Vframes(end-4));
+        else
+            tmp = -get3dtarget(itf, glab.offsetMarker, 0, C3Dkey.event.Vframes(1), C3Dkey.event.Vframes(end));
+        end
+        
         C3Dkey.offset = coordChange(tmp(1,:)', C3Dkey.transform.VICMODEL)';
         C3Dkey.offset(2) = 0;
         fprintf('\n[%s Offset Calculation (%s)] --> [X=%.2f  Y=%.2f  Z=%.2f] mm\n', ...

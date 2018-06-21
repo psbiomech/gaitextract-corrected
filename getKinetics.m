@@ -498,7 +498,7 @@ for i = 1:2
         fprintf('%d NaNs found in %s data\nWARNING: OpenSim may not like this very much...\n\n', length(xnan), tmpTxt);
     end
 end
-pause(3);  % time to visually inspect matlab output to check that there are no NaNs
+%pause(3);  % time to visually inspect matlab output to check that there are no NaNs
 
 
 % First attempt to fix rapid gradients in CoP

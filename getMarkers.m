@@ -226,7 +226,9 @@ if isstruct(C3Dkey) && saveTRC > 0,
     generateTrcFile(C3Dkey, markers.data_offset, markersetActualExtracted, saveTRC);
 end
 fclose all;
-pause(3)
+
+
+%pause(3)
 
 
 % Plot markers against OpenSim tutorial (optional)
