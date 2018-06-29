@@ -175,6 +175,7 @@ if abs(direction > 2)
 end
 
 isStaticTrial = 0;
+autoNotStatic = 1;
 if FP_order == -1
     isStaticTrial = 1;
     FP_order = [];
@@ -420,7 +421,7 @@ else
         % otherwise use Tim's original version. Calculate from 5th frame to
         % 5th-last frame if data stream is long enough.
         if (C3Dkey.event.Vframes(end)-C3Dkey.event.Vframes(1))>=10
-            tmp = -get3dtarget(itf, glab.offsetMarker, 0, C3Dkey.event.Vframes(5), C3Dkey.event.Vframes(end-4));
+            tmp = -get3dtarget(itf, glab.offsetMarker, 0, C3Dkey.event.Vframes(1)+5, C3Dkey.event.Vframes(end)-4);
         else
             tmp = -get3dtarget(itf, glab.offsetMarker, 0, C3Dkey.event.Vframes(1), C3Dkey.event.Vframes(end));
         end
@@ -492,11 +493,17 @@ if length(C3Dkey.event.txt) == 2
     % -----------------------------------------------------------------
     C3Dkey.trialType = '2_EVENTS';      % Simple / Static Trial
     
+    
     if isStaticTrial == 0
-        isStatic = input('2 Events are detected. Is this a static trial? [y/n]: ', 's');
+        if autoNotStatic == 0
+            isStatic = input('2 Events are detected. Is this a static trial? [y/n]: ', 's');
+        else
+            isStatic = 'N';
+        end
     else
         isStatic = 'Y';
     end
+    
     if strcmpi(isStatic, 'Y')
         
         fprintf('Defined as a STATIC TRIAL\n');
