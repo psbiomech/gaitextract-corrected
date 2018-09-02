@@ -81,6 +81,9 @@ if ind > 0
     if strcmpi(emgProcessTasks{ind+1}, 'C3Dkey')
         emgProcessTasks{ind+1} = C3Dkey;
     end
+    plotflag = 1;   % Prasanna Sritharan, August 2018
+else
+    plotflag = 0; % Prasanna Sritharan, August 2018
 end
 
 
@@ -120,8 +123,12 @@ for i = 1:numMuscles
         % Process EMGVec(t) -> Processed EMG e(t)
         % ---------------------------------------
         if ~isempty(EMGVecTmp.data)    % only process data that we were able to extract
-            eVecTmp = processEMG(EMGVecTmp, emgProcessTasks);
-        
+            if (plotflag==1)
+                eVecTmp = processEMG(EMGVecTmp, emgProcessTasks);
+            else
+                eVecTmp = processEMG(EMGVecTmp, [emgProcessTasks,'plot',0]); % Prasanna Sritharan, August 2018
+            end
+            
             % Set variables
             eVecGlob.(musc_name) = eVecTmp;
             if isfield(eVecTmp, 'SplitStrides')     % multiple cycles in a single C3Dfile
