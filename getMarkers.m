@@ -92,6 +92,7 @@ openc3d(itf, 0, C3Dkey.c3dFileFULL);
 
 framesTotal = nframes(itf);
 C_index = itf.GetParameterIndex('TRIAL', 'CAMERA_RATE');
+if C_index<0, C_index = itf.GetParameterIndex('POINT', 'RATE'); end      % non-Vicon-generated files may not have the TRIAL group
 MOTIONfreq = double(itf.GetParameterValue(C_index, 0));
 
 if isstruct(C3Dkey),

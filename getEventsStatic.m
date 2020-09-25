@@ -237,58 +237,74 @@ C3Dkey.numFrames.uncroppedA = C3Dkey.numFrames.uncroppedV * C3Dkey.r - C3Dkey.r 
 % Extract Coordinate & Force Plate Information
 % --------------------------------------------
 aIndex = itf.GetParameterIndex('FORCE_PLATFORM', 'USED');
-C3Dkey.numPlatesTotal = double(itf.GetParameterValue(aIndex, 0));
-C3Dkey.numPlatesUsed = length(FP_order);
+C3Dkey.numPlatesTotal = 0;
+C3Dkey.numPlatesUsed = 0;
+if aIndex>0     % at least one force plate, Prasanna Sritharan Sept 2020
+    C3Dkey.numPlatesTotal = double(itf.GetParameterValue(aIndex, 0));
+    C3Dkey.numPlatesUsed = length(FP_order);
 
-C3Dkey.FP_order = FP_order;
-C3Dkey.FP_order_inv = invFP(C3Dkey.FP_order);
+    C3Dkey.FP_order = FP_order;
+    C3Dkey.FP_order_inv = invFP(C3Dkey.FP_order);
 
-C3Dkey.direction = direction;
-ind = find([1 -1 2 -2] == C3Dkey.direction);
+    C3Dkey.direction = direction;
+    ind = find([1 -1 2 -2 3 -3] == C3Dkey.direction);
 
-if ~isempty(ind)
-    
-    % Build Transform Matrices for each force plate used in extraction
-    % ------------------------------------------------------------------
-    C3Dkey.transform.VICMODEL = make3DTransform(glab.transform.VICMODEL(ind,:));
-    C3Dkey.transform.MODELVIC = inv(C3Dkey.transform.VICMODEL);
-    
-    for i = 1:C3Dkey.numPlatesUsed
-        % Now we need to detect the transform from FP to VICON. We use the FP
-        % corners to do this.
-        % FP X = FROM corner 2 TO corner 1 (VICON)
-        % FP Y = FROM corner 3 TO corner 2 (VICON)
-        % FP Z = cross(FP X, FP Y)
-        % ------------------------------------------------------------
-        FP = calcFPData(itf, C3Dkey, 1);
-        fpx = FP.corners(1,:,i) - FP.corners(2,:,i);
-        fpx = fpx/norm(fpx);
-        fpy = FP.corners(2,:,i) - FP.corners(3,:,i);
-        fpy = fpy/norm(fpy);
-        fpz = cross(fpx, fpy);
-        C3Dkey.transform.FPVICON{i} = [fpx;fpy;fpz];
-        
-        % VICON TO FP
-        C3Dkey.transform.VICONFP{i} = inv(C3Dkey.transform.FPVICON{i});
-        
-        % MODEL TO FP
-        C3Dkey.transform.MODELFP{i} = C3Dkey.transform.VICONFP{i} * C3Dkey.transform.MODELVIC;
-        
-        % FP TO MODEL
-        C3Dkey.transform.FPMODEL{i} = inv(C3Dkey.transform.MODELFP{i});
+    if ~isempty(ind)
 
+        % Build Transform Matrices for each force plate used in extraction
+        % ------------------------------------------------------------------
+        C3Dkey.transform.VICMODEL = make3DTransform(glab.transform.VICMODEL(ind,:));
+        C3Dkey.transform.MODELVIC = inv(C3Dkey.transform.VICMODEL);
+
+        for i = 1:C3Dkey.numPlatesUsed
+            % Now we need to detect the transform from FP to VICON. We use the FP
+            % corners to do this.
+            % FP X = FROM corner 2 TO corner 1 (VICON)
+            % FP Y = FROM corner 3 TO corner 2 (VICON)
+            % FP Z = cross(FP X, FP Y)
+            % ------------------------------------------------------------
+            FP = calcFPData(itf, C3Dkey, 1);
+            fpx = FP.corners(1,:,i) - FP.corners(2,:,i);
+            fpx = fpx/norm(fpx);
+            fpy = FP.corners(2,:,i) - FP.corners(3,:,i);
+            fpy = fpy/norm(fpy);
+            fpz = cross(fpx, fpy);
+            C3Dkey.transform.FPVICON{i} = [fpx;fpy;fpz];
+
+            % VICON TO FP
+            C3Dkey.transform.VICONFP{i} = inv(C3Dkey.transform.FPVICON{i});
+
+            % MODEL TO FP
+            C3Dkey.transform.MODELFP{i} = C3Dkey.transform.VICONFP{i} * C3Dkey.transform.MODELVIC;
+
+            % FP TO MODEL
+            C3Dkey.transform.FPMODEL{i} = inv(C3Dkey.transform.MODELFP{i});
+
+        end
     end
-end
-fprintf('\nDetected transforms for all coordinate systems sucsessfully.');
-fprintf('\nVICON TO MODEL\n------------------------\n')
-print3x3Matrix(C3Dkey.transform.VICMODEL)
+    fprintf('\nDetected transforms for all coordinate systems sucsessfully.');
+    fprintf('\nVICON TO MODEL\n------------------------\n')
+    print3x3Matrix(C3Dkey.transform.VICMODEL)
 
-for i = 1:C3Dkey.numPlatesUsed
-   fprintf('\nFP(#%d) TO MODEL\n------------------------\n', C3Dkey.FP_order(i)) 
-   print3x3Matrix(C3Dkey.transform.FPMODEL{i})
-end
-fprintf('\n\n');
+    for i = 1:C3Dkey.numPlatesUsed
+       fprintf('\nFP(#%d) TO MODEL\n------------------------\n', C3Dkey.FP_order(i)) 
+       print3x3Matrix(C3Dkey.transform.FPMODEL{i})
+    end
+    fprintf('\n\n');
 
+% if no force plates, just compute Vicon to model transforms
+% Prasanna Sritharan, September 2020
+else    
+    fprintf('\nNo force plates found.\n');
+    C3Dkey.direction = direction;
+    ind = find([1 -1 2 -2 3 -3] == C3Dkey.direction);
+    C3Dkey.transform.VICMODEL = make3DTransform(glab.transform.VICMODEL(ind,:));
+    C3Dkey.transform.MODELVIC = inv(C3Dkey.transform.VICMODEL);    
+    fprintf('\nDetected transforms for Vicon to model only.');
+    fprintf('\nVICON TO MODEL\n------------------------\n')
+    print3x3Matrix(C3Dkey.transform.VICMODEL)
+end    
+    
 
 % Extract Event Information
 % -------------------------
@@ -301,10 +317,10 @@ catch
 end
 
 % Detected no events
-if C3Dkey.event.nEvent == 0 || noEvents,
+if noEvents || C3Dkey.event.nEvent == 0,
     fprintf('WARNING: No events detected in the c3d file.\n')
-    %insertArtEvents = input('Do you want to insert artificial events at the start/end frame? [y/n]: ', 's');
-    insertArtEvents = 'y';
+    %insertArtEvents = input('Do you want to insert artificial events at the start/end frame? [y/n]: ', 's');  
+    insertArtEvents = 'y';  % override input for static trials, Prasanna Sritharan June 2018
     if insertArtEvents == 'y'
         txtRaw = {'GEN', 'GEN'};
         timeRaw = [itf.GetVideoFrame(0), itf.GetVideoFrame(1)]/C3Dkey.vFreq;
