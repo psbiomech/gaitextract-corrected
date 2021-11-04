@@ -1,4 +1,4 @@
-    % Extract and process kinetic data (GRF, CoP, GRMo, GRMx) from a C3D file.
+% Extract and process kinetic data (GRF, CoP, GRMo, GRMx) from a C3D file.
 % Tim Dorn
 % Last Updated: September 2010
 % 

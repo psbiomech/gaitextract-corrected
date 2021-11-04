@@ -170,7 +170,7 @@ elseif nargin ~= 4,
     return
 end
 
-if abs(direction > 2)
+if abs(direction > 3)
     error('Invalid direction scalar: type help getEvents for allowable direction values');
 end
 
