@@ -317,7 +317,7 @@ catch
 end
 
 % Detected no events
-if noEvents || C3Dkey.event.nEvent == 0,
+if noEvents || C3Dkey.event.nEvent == 0
     fprintf('WARNING: No events detected in the c3d file.\n')
     %insertArtEvents = input('Do you want to insert artificial events at the start/end frame? [y/n]: ', 's');  
     insertArtEvents = 'y';  % override input for static trials, Prasanna Sritharan June 2018
